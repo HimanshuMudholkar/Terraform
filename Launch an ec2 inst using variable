@@ -1,0 +1,114 @@
+provider.tf  :-
+
+provider "aws" {
+  region  = "us-east-1"
+  profile = "terraformprofile"
+
+}
+
+
+main.tf :-
+
+resource "aws_instance" "server" {
+  ami               = var.ami_id
+  instance_type     = var.instance_type[1]
+  tags              = var.instance_tags
+  availability_zone = var.availability_zone
+  security_groups   = [aws_security_group.this.name]
+  monitoring        = var.monitoring
+}
+
+resource "aws_security_group" "this" {
+  name        = var.sg_name
+  description = var.sg_description
+  vpc_id      = var.vpc_id
+
+  ingress {
+    description = "TLS from VPC"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "TLS from VPC"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "TLS from VPC"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = var.sg_tags
+}
+
+variable.tf  :-
+
+variable "ami_id" {
+  type        = string
+  default     = "ami-007855ac798b5175e"
+  description = "This is ubuntu ami for my instance"
+}
+
+variable "instance_type" {
+  type    = list(any)
+  default = ["t2.micro", "t2.medium", "t2.large", "t2.small", "t3.micro", "t3.medium", "t3.large", "t3.small"]
+}
+
+variable "instance_tags" {
+  type = map(any)
+  default = {
+    Name     = "Webserver"
+    End-date = 23 / 04 / 2023
+    Purpose  = "Testing instance tags"
+  }
+}
+
+variable "availability_zone" {
+  type    = string
+  default = "us-east-1a"
+}
+
+variable "sg_name" {
+  type    = string
+  default = "tf_sg"
+}
+
+variable "sg_description" {
+  type    = string
+  default = "This is a security group"
+}
+
+variable "vpc_id" {
+  type    = string
+  default = "vpc-0c9c0ab867c577b20"
+}
+
+variable "sg_tags" {
+  type = map(any)
+  default = {
+    Name        = "allow_tls"
+    description = "Allow all ports"
+  }
+}
+
+variable "monitoring" {
+  type    = bool
+  default = false
+}
