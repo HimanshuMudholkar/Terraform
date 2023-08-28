@@ -1,0 +1,144 @@
+provider.tf  :- 
+
+provider "aws" {
+  region  = "us-east-1"
+  profile = "tf-pro"
+
+}
+
+main.tf  :-
+
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+resource "aws_instance" "web-server" {
+  ami                         = data.aws_ami.ubuntu.id
+  instance_type               = "t2.micro"
+  count                       = 2
+  associate_public_ip_address = true
+  availability_zone           = "us-east-1a"
+  key_name                    = aws_key_pair.generated_key.key_name
+  security_groups             = [aws_security_group.this.name]
+  user_data                   = <<EOF
+#!/bin/bash
+sudo apt-get update
+sudo apt-get install -y apache2
+sudo systemctl start apache2
+sudo systemctl enable apache2
+echo "<h1>Hello world</h1>" | sudo tee /var/www/html/index.html
+EOF
+  tags = {
+    Name    = "himanshu"
+    Purpose = "Terraform testing"
+    EndDate = "20/04/2023"
+  }
+}
+
+resource "tls_private_key" "example" {
+  algorithm = "RSA"
+  rsa_bits  = 4096
+}
+
+resource "aws_key_pair" "generated_key" {
+  key_name   = "himanshu-key"
+  public_key = tls_private_key.example.public_key_openssh
+}
+
+data "aws_vpc" "default" {
+  default = true
+}
+
+data "aws_subnet_ids" "subnet" {
+  vpc_id = data.aws_vpc.default.id
+}
+
+resource "aws_security_group" "this" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+
+  ingress {
+    description = "TLS from VPC"
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "TLS from VPC"
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  ingress {
+    description = "TLS from VPC"
+    from_port   = 80
+    to_port     = 80
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "this"
+  }
+}
+
+resource "aws_lb_target_group" "target-group" {
+  name        = "tg"
+  port        = 80
+  protocol    = "HTTP"
+  target_type = "instance"
+  vpc_id      = data.aws_vpc.default.id
+}
+
+resource "aws_lb" "application-lb" {
+  name               = "alb"
+  internal           = false
+  ip_address_type    = "ipv4"
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.this.id]
+  subnets            = data.aws_subnet_ids.subnet.ids
+}
+
+resource "aws_lb_listener" "alb-listener" {
+  load_balancer_arn = aws_lb.application-lb.arn
+  port              = 80
+  protocol          = "HTTP"
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.target-group.arn
+  }
+}
+
+resource "aws_lb_target_group_attachment" "ec2_attach" {
+  count            = length(aws_instance.web-server)
+  target_group_arn = aws_lb_target_group.target-group.arn
+  target_id        = aws_instance.web-server[count.index].id
+}
+
+output "elb-dns-name" {
+  value = aws_lb.application-lb.dns_name
+}
