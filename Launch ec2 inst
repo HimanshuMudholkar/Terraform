@@ -1,0 +1,39 @@
+provider.tf  :- 
+
+provider "aws" {
+  region  = "us-east-1"
+  profile = "terraformprofile"
+
+}
+
+main.tf  :-
+
+resource "aws_instance" "web" {
+  ami           = "ami-06e46074ae430fba6"
+  instance_type = "t3.micro"
+
+  tags = {
+    Name    = "sonu@gmail.com"
+    Purpose = "terraform testing"
+    Enddate = "18/04/2023"
+  }
+}
+
+resource "aws_key_pair" "deployer" {
+  key_name   = "deployer-key"
+  public_key = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQCv7aJZuaJ3/8VjqOeFAyzQN+4VVMabDrfcVAJtQvJG9QGuIMJJ+H3XxQ79rbggAqxbz1PI01DypldZ/odVF6N3TUKc2p7qdDI7VPqWJl4+nwJtZlhbVxlv3jkA0F6Op6c5YtmSuLIdz1Svi0oIcnG3c2osvHzKJ3DRI+kVE/z190epw5rCXevuf2b9EL2uvJCSDFZTxsiiAsnXRfjyUYNo7FZk3M15PAoiIO8vzN7U7kIP5+RQCf0mlp2s44Fyz7NErFIlYDDGJaluFHtA5ty5S4uO3Dqwrvsbixmfq+fWDfQImoAbnpwrNDwNEKDUzqWPse0VGqhEq4iFCGorq/Xc2UQ58fzWqOpI4Fed51hzEDfZtp/p4oKSkWrOjZh451poGc4j7kqNLxcc105ETLvUuDof7tMaW3Tfs8THYxZM08DnWJiWid7HhAyN/HOMVbrZT2FqTq+nJxPx2YEUdR7wl2/3BeMx37vDpzeoPAhq1+m3foroHX1J/kqX/8hQn78= himan@DESKTOP-NFSMDIS"
+}
+
+resource "aws_ebs_volume" "web1" {
+  availability_zone = "us-east-1c"
+  size              = 40
+
+  tags = {
+    Name = "ebs-1"
+  }
+}
+resource "aws_volume_attachment" "web" {
+  device_name = "/dev/sdh"
+  volume_id   = aws_ebs_volume.web1.id
+  instance_id = aws_instance.web.id
+}
