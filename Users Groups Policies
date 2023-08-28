@@ -2,7 +2,7 @@ provider.tf  :-
 
 provider "aws" {
   region     = "us-east-1"
-  access_key = "123"
+  access_key = "1234"
   secret_key = "123456789"
 }
 
