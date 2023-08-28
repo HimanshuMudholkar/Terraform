@@ -1,0 +1,305 @@
+provider.tf  :-
+
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "123"
+  secret_key = "123456789"
+}
+
+main.tf  :-
+
+resource "aws_iam_user" "user-1" {
+  name = "AccountUser1"
+  tags = {
+    Description = "This user belongs to accounting group"
+  }
+}
+
+resource "aws_iam_user" "user-2" {
+  name = "AccountUser2"
+  tags = {
+    Description = "This user belongs to accounting group"
+  }
+}
+
+resource "aws_iam_user" "user-3" {
+  name = "AccountUser3"
+  tags = {
+    Description = "This user belongs to accounting group"
+  }
+}
+
+resource "aws_iam_user" "user-4" {
+  name = "AccountUser4"
+  tags = {
+    Description = "This user belongs to accounting group"
+  }
+}
+
+resource "aws_iam_user" "user-5" {
+  name = "DevlopingUser5"
+  tags = {
+    Description = "This user belongs to developer group"
+  }
+}
+
+resource "aws_iam_user" "user-6" {
+  name = "DevlopingUser6"
+  tags = {
+    Description = "This user belongs to developer group"
+  }
+}
+
+resource "aws_iam_user" "user-7" {
+  name = "DevlopingUser7"
+  tags = {
+    Description = "This user belongs to developer group"
+  }
+}
+
+resource "aws_iam_user" "user-8" {
+  name = "DevlopingUser8"
+  tags = {
+    Description = "This user belongs to developer group"
+  }
+}
+
+resource "aws_iam_user" "user-9" {
+  name = "TestingUser9"
+  tags = {
+    Description = "This user belongs to testing group"
+  }
+}
+
+resource "aws_iam_user" "user-10" {
+  name = "TestingUser10"
+  tags = {
+    Description = "This user belongs to testing group"
+  }
+}
+
+resource "aws_iam_user" "user-11" {
+  name = "TestingUser11"
+  tags = {
+    Description = "This user belongs to testing group"
+  }
+}
+
+resource "aws_iam_user" "user-12" {
+  name = "TestingUser12"
+  tags = {
+    Description = "This user belongs to testing group"
+  }
+}
+
+resource "aws_iam_user" "user-13" {
+  name = "MonitoringUser13"
+  tags = {
+    Description = "This user belongs to monitoring group"
+  }
+}
+
+resource "aws_iam_user" "user-14" {
+  name = "MonitoringUser14"
+  tags = {
+    Description = "This user belongs to monitoring group"
+  }
+}
+
+resource "aws_iam_user" "user-15" {
+  name = "MonitoringUser15"
+  tags = {
+    Description = "This user belongs to monitoring group"
+  }
+}
+
+resource "aws_iam_user" "user-16" {
+  name = "MonitoringUser16"
+  tags = {
+    Description = "This user belongs to monitoring group"
+  }
+}
+
+resource "aws_iam_group" "accounting-group" {
+  name = "Accounting-group"
+}
+
+resource "aws_iam_group_membership" "accounting-team" {
+  name = "Accounting-group-membership"
+
+  users = [
+    aws_iam_user.user-1.name,
+    aws_iam_user.user-2.name,
+    aws_iam_user.user-3.name,
+    aws_iam_user.user-4.name,
+  ]
+
+  group = aws_iam_group.accounting-group.name
+}
+
+resource "aws_iam_group" "developer-group" {
+  name = "Developer-group"
+}
+
+resource "aws_iam_group_membership" "developer-team" {
+  name = "Developer-group-membership"
+
+  users = [
+    aws_iam_user.user-5.name,
+    aws_iam_user.user-6.name,
+    aws_iam_user.user-7.name,
+    aws_iam_user.user-8.name,
+  ]
+
+  group = aws_iam_group.developer-group.name
+}
+
+resource "aws_iam_group" "testing-group" {
+  name = "Testing-group"
+}
+
+resource "aws_iam_group_membership" "testing-team" {
+  name = "Testing-group-membership"
+
+  users = [
+    aws_iam_user.user-9.name,
+    aws_iam_user.user-10.name,
+    aws_iam_user.user-11.name,
+    aws_iam_user.user-12.name,
+  ]
+
+  group = aws_iam_group.testing-group.name
+}
+
+resource "aws_iam_group" "monitoring-group" {
+  name = "Monitoring-group"
+}
+
+resource "aws_iam_group_membership" "monitoring-team" {
+  name = "Monitoring-group-membership"
+
+  users = [
+    aws_iam_user.user-13.name,
+    aws_iam_user.user-14.name,
+    aws_iam_user.user-15.name,
+    aws_iam_user.user-16.name,
+  ]
+
+  group = aws_iam_group.monitoring-group.name
+}
+
+resource "aws_iam_policy" "acc" {
+  name = "acc_policy"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Sid" : "VisualEditor0",
+        "Effect" : "Allow",
+        "Action" : [
+          "billing:ListBillingViews",
+          "billing:GetSellerOfRecord",
+          "billing:GetBillingDetails",
+          "billing:GetBillingNotifications",
+          "billing:GetBillingPreferences",
+          "billing:GetBillingData",
+          "billing:GetIAMAccessPreference",
+          "billing:GetContractInformation",
+          "billing:GetCredits"
+        ],
+        "Resource" : "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "acc" {
+  name       = "acc-attachment"
+  groups     = [aws_iam_group.accounting-group.name]
+  policy_arn = aws_iam_policy.acc.arn
+}
+
+resource "aws_iam_policy" "dev" {
+  name = "dev_policy"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Sid" : "VisualEditor0",
+        "Effect" : "Allow",
+        "Action" : [
+          "s3:Get*"
+        ],
+        "Resource" : "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "dev" {
+  name       = "dev-attachment"
+  groups     = [aws_iam_group.developer-group.name]
+  policy_arn = aws_iam_policy.dev.arn
+}
+
+resource "aws_iam_policy" "test" {
+  name = "test_policy"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [
+      {
+        "Effect" : "Allow",
+        "Action" : [
+          "ec2:DescribeInstances",
+          "ec2:DescribeImages",
+          "ec2:DescribeTags",
+          "ec2:DescribeSnapshots"
+        ],
+        "Resource" : "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "test" {
+  name       = "test-attachment"
+  groups     = [aws_iam_group.testing-group.name]
+  policy_arn = aws_iam_policy.test.arn
+}
+
+resource "aws_iam_policy" "mon" {
+  name = "mon_policy"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode({
+    "Version" : "2012-10-17",
+    "Statement" : [{
+      "Effect" : "Allow",
+      "Action" : [
+        "cloudwatch:DescribeAlarmHistory",
+        "cloudwatch:GetDashboard",
+        "cloudwatch:GetInsightRuleReport",
+        "cloudwatch:DescribeAlarms",
+        "cloudwatch:GetMetricStream"
+      ],
+      "Resource" : "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy_attachment" "mon" {
+  name       = "mon-attachment"
+  groups     = [aws_iam_group.monitoring-group.name]
+  policy_arn = aws_iam_policy.mon.arn
+}
